@@ -1,24 +1,20 @@
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy.orm import Session
 from app.models import User
 
 class UserRepository:
-    def __init__(self, db: AsyncSession):
+    def __init__(self, db: Session):
         self.db = db
     
-    async def get_by_username(self, username: str):
-        result = await self.db.execute(select(User).where(User.username == username))
-        return result.scalar_one_or_none()
+    def get_by_username(self, username: str):
+        return self.db.query(User).filter(User.username == username).first()
     
-    async def get_by_email(self, email: str):
-        result = await self.db.execute(select(User).where(User.email == email))
-        return result.scalar_one_or_none()
+    def get_by_email(self, email: str):
+        return self.db.query(User).filter(User.email == email).first()
     
-    async def get_by_id(self, user_id: int):
-        result = await self.db.execute(select(User).where(User.id == user_id))
-        return result.scalar_one_or_none()
+    def get_by_id(self, user_id: int):
+        return self.db.query(User).filter(User.id == user_id).first()
     
-    async def create(self, username: str, email: str, hashed_password: str, is_admin: bool = False):
+    def create(self, username: str, email: str, hashed_password: str, is_admin: bool = False):
         user = User(
             username=username,
             email=email,
@@ -26,10 +22,9 @@ class UserRepository:
             is_admin=is_admin
         )
         self.db.add(user)
-        await self.db.commit()
-        await self.db.refresh(user)
+        self.db.commit()
+        self.db.refresh(user)
         return user
     
-    async def get_all_users(self):
-        result = await self.db.execute(select(User))
-        return result.scalars().all()
+    def get_all_users(self):
+        return self.db.query(User).all()
